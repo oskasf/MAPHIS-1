@@ -157,7 +157,7 @@ def generateBlockOfFlats(sizeImg):
 
     rotationAngle = random.randint(0,180)
     rotatedBand = ndimage.rotate(band, rotationAngle, reshape=True, mode='constant', cval=1)
-    rotatedImage = ndimage.rotate(mask*generateStripePattern(enclosingSquareLength), rotationAngle, reshape=True, mode='constant', cval=2515)
+    rotatedImage = ndimage.rotate(mask*generateStripePattern(enclosingSquareLength), rotationAngle, reshape=True, mode='constant', cval=1)
     rotatedMask = ndimage.rotate(mask, rotationAngle, reshape=True, mode='constant', cval=0)
     cropMargin = int((enclosingSquareLength-sizeImg)/2)
     return crop(rotatedImage+rotatedBand, cropMargin, sizeImg), crop(rotatedMask, cropMargin, sizeImg), crop(rotatedBand, cropMargin, sizeImg)
@@ -203,6 +203,7 @@ def generateTreesAndMask(patternsDict, sizeImg=512):
             rim = (imageBloc*(maskBloc-1)+(1-maskBloc))
             image = image * (1- maskBloc) + maskBloc*imageBloc - rim
             maskStripes = ( maskStripes * (1-maskBloc) + maskBloc) * (1-rim)
+            maskTrees *= 1-maskBloc
         else:
             imageBloc, maskBloc , band  = generateBlockOfFlats(sizeImg)
             image = image*band + imageBloc* (1-band)
@@ -255,17 +256,16 @@ def generateTreesAndMask(patternsDict, sizeImg=512):
 
 def main(args):
     patternsDict = getPatterns(args.datasetPath)
-    random.seed(args.randomSeed)
+    #random.seed(args.randomSeed)
     counter = len(glob.glob(f'{args.savePath}/image*'))
     for i in range(args.nSamples):
         image, maskTrees, maskStripes = generateTreesAndMask(patternsDict)
         if args.treatment == 'show':
             plt.matshow(image)
             plt.show()
-            plt.matshow(maskStripes)
+            plt.matshow(maskStripes + maskTrees)
             plt.show()
-            plt.matshow(maskTrees)
-            plt.show()
+
         elif args.treatment == 'save':
             Path(f'{args.savePath}').mkdir(parents=True ,exist_ok=True)
             np.save(f'{args.savePath}/image_{counter}', image)
@@ -283,7 +283,7 @@ if __name__ == '__main__':
     parser.add_argument('--datasetPath', required=False, type=str, default = f'C:/Users/hx21262/MAPHIS/datasets/patterns')
     parser.add_argument('--nSamples', required=False, type=int, default = 4000)
     parser.add_argument('--randomSeed', required=False, type=int, default = 753159)
-    parser.add_argument('--savePath', required=False, type=str, default = f'C:/Users/hx21262/MAPHIS/datasets/syntheticCity')
+    parser.add_argument('--savePath', required=False, type=str, default = f'C:/Users/hx21262/MAPHIS/datasets/syntheticCities')
     parser.add_argument('--imageSize', required=False, type=int, default = 512)
     parser.add_argument('--treatment', required=False, type=str, default='show')
     args = parser.parse_args()
