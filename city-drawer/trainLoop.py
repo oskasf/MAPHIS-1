@@ -35,6 +35,8 @@ def main():
 
     modelSegmentParameters = {"ncIn":1, "nGaborFilters":64, "ngf":4, "ncOut":1, "supportSizes":[5,7,9,11]}
     modelSegment = models.segmentationModel(modelSegmentParameters)
+    if not Path('saves').is_dir():
+        Path('saves').mkdir(parents=True, exist_ok=True)
     with open(f'saves/{args.feature}SegmentModelParameters.json', 'w') as saveFile:
         json.dump(modelSegmentParameters, saveFile)
 
