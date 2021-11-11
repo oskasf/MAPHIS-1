@@ -78,18 +78,21 @@ class UNet2d(Module):
         return y1
 
 class segmentationModel(Module):
-    def __init__(self, nc=1, nGaborFilters=64, ngf=64, ncOut=2, supportSizes=[5,7,9,11]):
+    def __init__(self, parametersDict:dict):
         super(segmentationModel, self).__init__()
         self.name = 'U_GEN'
-        self.ngf = ngf
-        self.supportSizes = supportSizes
-        self.gaborFilters = ModuleDict({f'{supportSize}': Conv2d(nc, int(nGaborFilters/len(supportSizes)), supportSize, stride = 1, padding=int((supportSize-1)/2), padding_mode='reflect'  ) for supportSize in supportSizes})
+        ## Assert that all parameters are here:
+        for paramKwd in ['ngf', 'ncIn', 'ncOut', 'nGaborFilters', 'supportSizes']:
+            if not parametersDict[paramKwd]:raise KeyError (f'{paramKwd} is missing')
+        self.ngf = parametersDict['ngf']
+        self.supportSizes = parametersDict['supportSizes']
+        self.gaborFilters = ModuleDict({f'{supportSize}': Conv2d(parametersDict['ncIn'], int(parametersDict['nGaborFilters']/len(self.supportSizes)), supportSize, stride = 1, padding=int((supportSize-1)/2), padding_mode='reflect'  ) for supportSize in self.supportSizes})
         
         for param in self.gaborFilters.parameters():
             param.requires_grad = False
         self.setGaborfiltersValues()       
         
-        self.unet = UNet2d(nGaborFilters, ncOut, ngf, 5)
+        self.unet = UNet2d(parametersDict['nGaborFilters'], parametersDict['ncOut'], self.ngf, 5)
         
     def setGaborfiltersValues(self, thetaRange = 180):
         thetas = linspace(0, thetaRange, int(self.ngf/len(self.supportSizes)))
