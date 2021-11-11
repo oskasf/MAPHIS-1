@@ -7,14 +7,17 @@ import argparse
 import models
 import matplotlib.pyplot as plt
 import json
+from pyprojroot import here
+import os
 
 from datasetsFunctions import syntheticCity
 
 def main():
+    base_path = str(here()) 
     parser = argparse.ArgumentParser(description='Tree Generation')
     parser.add_argument('--batchSize', required=False, type=int, default = 4)
     parser.add_argument('--randomSeed', required=False, type=int, default = 753159)
-    parser.add_argument('--datasetPath', required=False, type=str, default = r'C:\Users\hx21262\MAPHIS\datasets')
+    parser.add_argument('--datasetPath', required=False, type=str, default = os.path.join(base_path, "datasets"))
     parser.add_argument('--imageSize', required=False, type=int, default = 512)
     parser.add_argument('--epochs', required=False, type=int, default = 3)
     parser.add_argument('--numWorkers', required=False, type=int, default = 2)
@@ -35,6 +38,8 @@ def main():
 
     modelSegmentParameters = {"ncIn":1, "nGaborFilters":64, "ngf":4, "ncOut":1, "supportSizes":[5,7,9,11]}
     modelSegment = models.segmentationModel(modelSegmentParameters)
+    if not Path('saves').is_dir():
+        Path('saves').mkdir(parents=True, exist_ok=True)
     with open(f'saves/{args.feature}SegmentModelParameters.json', 'w') as saveFile:
         json.dump(modelSegmentParameters, saveFile)
 
