@@ -27,7 +27,7 @@ class Application(ttk.Frame):
         self.tilingParameters = json.load(open(datasetPath / 'tilingParameters.json'))
         self.nTiles = int(self.tilingParameters["nCols"]*self.tilingParameters["nRows"])
 
-        self.setCurrentlyOpenedFile(index=0)
+        self.setCurrentlyOpenedFile(self.allTilesNames[0])
         self.loadClassifiedDict()
 
         self.classes = {'rich residential neighborhood':0, 'poor residential neighborhood':1, 'industrial district':2,
@@ -71,8 +71,8 @@ class Application(ttk.Frame):
         self.dropdownMenu = tk.OptionMenu(self.buttonFrame, self.tileNameDisplayed, *self.allTilesNames)
         self.dropdownMenu.grid(row=rowTileInfo,column=0)
 
-        '''self.changeTileButton = ttk.Button(self.buttonFrame , text="Change Tile", command=lambda:[self.changeTile(), self.updateIndex()])
-        self.changeTileButton.grid(row=rowTileInfo,column=1)'''
+        self.changeTileButton = ttk.Button(self.buttonFrame , text="Change Tile", command=lambda:[self.changeTile(), self.updateIndex()])
+        self.changeTileButton.grid(row=rowTileInfo,column=1)
 
         self.saveButton = ttk.Button(self.buttonFrame , text="Save progress", command=lambda:[self.saveProgress()])
         self.saveButton.grid(row=rowTileInfo,column=2)
@@ -102,8 +102,8 @@ class Application(ttk.Frame):
         else:
             print('Not Implemented')
 
-    def classify(self, savedClass):
-        self.classifiedDict[self.currentThumbnailIndex] = savedClass
+    def classify(self, savedClass:int):
+        self.classifiedDict[f'{self.currentThumbnailIndex}'] = savedClass
         try:
             self.classifiedDict['Not Classified'].remove(self.currentThumbnailIndex)
             self.classifiedDict['Classified'].append(self.currentThumbnailIndex)
@@ -112,7 +112,7 @@ class Application(ttk.Frame):
 
     def updateCanvas(self, indexString=None):
         if indexString is not None:
-            if indexString.is_digit() and int(indexString) < self.nTiles:
+            if indexString.isdigit() and int(indexString) < self.nTiles:
                     self.currentThumbnailIndex = int(indexString)
             else:
                 print(f"Enter positive integers inferior to {self.nTiles} Only")
@@ -123,38 +123,24 @@ class Application(ttk.Frame):
                 print(f"Reached the end of the tile, not updating index")
 
         self.displayThumbnail()
-
-    ''' 
+    
     def changeTile(self):
-        self.currentTileName =self.tileNameDisplayed.get()
-        displayName = self.currentTileName.split('\\')[-1]
-
-        if Path(PurePath(self.classifiedFolderPath).joinpath(displayName.split('.')[0]+'.npz')).is_file():
-            loadPath = self.classifiedFolderPath / displayName.split('.')[0]
-            self.savedClassisedTile = np.load(loadPath.with_suffix('.npz'))['arr_0']
-            with open(loadPath.with_suffix('.csv'),'r') as f:
-                reader = csv.reader(f)
-                myList = list(reader)
-                self.iTile, self.jTile = int(myList[0][0]), int(myList[1][0])
-        else:
-            self.savedClassisedTile = np.zeros((self.nRows*self.scaleFactor,self.nCols*self.scaleFactor,3), dtype=np.uint8)
-            self.iTile, self.jTile = 0,0
-
-        self.currentTileName =self.tileNameDisplayed.get()
-        displayName = self.currentTileName.split('\\')[-1]
-        print(f'Updating tile : {displayName}')
-        self.displayThumbnail()'''
+        self.setCurrentlyOpenedFile(self.tileNameDisplayed.get())
+        self.loadClassifiedDict()
+        self.displayThumbnail()
 
     def updateIndex(self):
         self.currentIndexDisplay['text'] = f'({self.currentThumbnailIndex}) / ({self.nTiles})'
 
     def saveProgress(self):
         with open(self.classifiedFolderPath / f'{self.currentTileName}.json', 'w') as outfile:
-                json.dump(self.classifiedDict, outfile)
+            json.dump(self.classifiedDict, outfile)
+        print(f'Progress saved in {self.currentTileName}.json')
 
-    def setCurrentlyOpenedFile(self, index):
-        self.currentTilePath = self.allTilesPath[index]
-        self.currentTileName = self.allTilesNames[index]
+    def setCurrentlyOpenedFile(self, tileName:str):
+        self.currentTileName = tileName
+        self.currentIndex = self.allTilesNames.index(self.currentTileName)
+        self.currentTilePath = self.allTilesPath[self.currentIndex]
         self.currentlyOpenedFile = self.fileOpenFunction(self.currentTilePath)
 
     def getCurrentCoordinates(self)->dict:
