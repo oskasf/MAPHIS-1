@@ -7,26 +7,25 @@ import glob
 from PIL import Image
 from matplotlib.figure import Figure
 import numpy as np
-from pathlib import Path, PurePath
+from pathlib import Path
 import json
 
 class Application(ttk.Frame):
-    def __init__(self, master:tk.Tk, cityName:str, datasetPath:Path, classifiedFolderPath:Path, tileFileFormat='jpg'):
-        ttk.Frame.__init__(self, master)
+    def __init__(self, master:tk.Tk, cityName:str, datasetPath:Path, tileFileFormat:str):
+        super(Application, self).__init__()
 
-        self.master = master
         self.cityName = cityName
         self.datasetPath = datasetPath
         self.cityPath = next(datasetPath.glob(f'cities/{cityName}/*/*'))
 
-        self.allTilesPath = list(self.cityPath.glob(f'*.{tileFileFormat}'))
+        self.allTilesPath = list(self.cityPath.glob(f'*{tileFileFormat}'))
         self.allTilesNames = [cityPath.stem for cityPath in self.allTilesPath]
 
-        self.classifiedFolderPath = classifiedFolderPath
-        self.featureNamesListPath = classifiedFolderPath / 'featureListTiles.csv'
+        self.classifiedFolderPath = Path(f'{datasetPath}/classifiedMaps/{cityName}')
+        self.classifiedFolderPath.mkdir(parents=True, exist_ok=True)
         self.tilingParameters = json.load(open(datasetPath / 'tilingParameters.json'))
         self.nTiles = int(self.tilingParameters["nCols"]*self.tilingParameters["nRows"])
-
+        
         self.setCurrentlyOpenedFile(self.allTilesNames[0])
         self.loadClassifiedDict()
 
@@ -35,12 +34,10 @@ class Application(ttk.Frame):
 
         self.classifiedTile = {}        
 
-        self.currentCoordinates = self.getCurrentCoordinates()
         self.figThumbnail = Figure(figsize=(5, 4), dpi=100)
-        self.figThumbnail.add_subplot(111).imshow(self.currentlyOpenedFile[self.currentCoordinates['yLow']:self.currentCoordinates['yHigh'], self.currentCoordinates['xLow']:self.currentCoordinates['xHigh']])
         self.canvaThumbnail = FigureCanvasTkAgg(self.figThumbnail, master)
-        self.canvaThumbnail.draw()
         self.canvaThumbnail.get_tk_widget().grid(row=0,column=1)
+        self.displayThumbnail()
 
         # Deal with buttons : put it on the grid (0,0) of the master by creating a Frame at that location
 
@@ -77,6 +74,10 @@ class Application(ttk.Frame):
         self.saveButton = ttk.Button(self.buttonFrame , text="Save progress", command=lambda:[self.saveProgress()])
         self.saveButton.grid(row=rowTileInfo,column=2)
 
+        rowButtonPredefined0 = 2
+        rowButtonPredefined1 = 3
+        rowButtonPredefined2 = 4
+
         ## Land classification tiles
         self.richResidential = tk.Button(self.buttonFrame, text="rich residential neighborhood", command=lambda:[self.classify(self.classes["rich residential neighborhood"]), self.updateCanvas(), self.updateIndex()])
         self.richResidential.grid(row=rowButtonPredefined0,column=0)
@@ -92,13 +93,13 @@ class Application(ttk.Frame):
     def clearTextInput(self, textBoxAttribute):
         textBoxAttribute.delete(0, len(textBoxAttribute.get()))
 
-    def fileOpenFunction(self, filePath:Path):
-        if filePath.suffix == '.png' or filePath.suffix == '.tif' or filePath.suffix=='.jpg':
-            array = np.asarray(Image.open(filePath))
+    def fileOpenFunction(self, filePath:Path) -> np.float32:
+        if filePath.suffix in ['.png', '.tif', '.jpg']:
+            array = np.asarray(Image.open(filePath), np.float32)
             paddedArray = np.pad(array, ((self.tilingParameters['paddingX'], self.tilingParameters['paddingX']),(self.tilingParameters['paddingY'], self.tilingParameters['paddingY'])), 'constant', constant_values=255)
             return paddedArray
         elif filePath.suffix == '.npz':
-            return np.load(filePath)['arr_0']
+            return np.load(filePath, np.float32)['arr_0']
         else:
             print('Not Implemented')
 
