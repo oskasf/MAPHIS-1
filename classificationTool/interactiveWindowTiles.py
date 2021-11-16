@@ -29,9 +29,13 @@ class Application(ttk.Frame):
         self.setCurrentlyOpenedFile(self.allTilesNames[0])
         self.loadClassifiedDict()
 
-        self.classes = {'rich residential neighborhood':0, 'poor residential neighborhood':1, 'industrial district':2,
-                          'peri-urban district':3,  'farm and forest':4}
-
+        self.defaultFeatureList = ['rich residential neighborhood', 'poor residential neighborhood', 'industrial district',
+                               'peri-urban district',  'farm and forest']
+                               
+        self.classes = {index:key for index, key in enumerate(self.defaultFeatureList)}
+        if not Path(f'{self.classifiedFolderPath.parent}/classes.json').is_file():
+            writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), self.classes)
+            
         self.classifiedTile = {}        
 
         self.figThumbnail = Figure(figsize=(5, 4), dpi=100)
@@ -79,15 +83,15 @@ class Application(ttk.Frame):
         rowButtonPredefined2 = 4
 
         ## Land classification tiles
-        self.richResidential = tk.Button(self.buttonFrame, text="rich residential neighborhood", command=lambda:[self.classify(self.classes["rich residential neighborhood"]), self.updateCanvas(), self.updateIndex()])
+        self.richResidential = tk.Button(self.buttonFrame, text="rich residential neighborhood", command=lambda:[self.classify("rich residential neighborhood"), self.updateCanvas(), self.updateIndex()])
         self.richResidential.grid(row=rowButtonPredefined0,column=0)
-        self.poorResidential = tk.Button(self.buttonFrame, text="poor residential neighborhood", command=lambda:[self.classify(self.classes["poor residential neighborhood"]), self.updateCanvas(), self.updateIndex()])
+        self.poorResidential = tk.Button(self.buttonFrame, text="poor residential neighborhood", command=lambda:[self.classify("poor residential neighborhood"), self.updateCanvas(), self.updateIndex()])
         self.poorResidential.grid(row=rowButtonPredefined0,column=1)
-        self.industrialDistrict = tk.Button(self.buttonFrame, text="industrial district", command=lambda:[self.classify(self.classes["industrial district"]), self.updateCanvas(), self.updateIndex()])
+        self.industrialDistrict = tk.Button(self.buttonFrame, text="industrial district", command=lambda:[self.classify("industrial district"), self.updateCanvas(), self.updateIndex()])
         self.industrialDistrict.grid(row=rowButtonPredefined1,column=0)
-        self.periUrban = tk.Button(self.buttonFrame, text="peri-urban district", command=lambda:[self.classify(self.classes["peri-urban district"]), self.updateCanvas(), self.updateIndex()])
+        self.periUrban = tk.Button(self.buttonFrame, text="peri-urban district", command=lambda:[self.classify("peri-urban district"), self.updateCanvas(), self.updateIndex()])
         self.periUrban.grid(row=rowButtonPredefined1,column=1)
-        self.farmAndForest = tk.Button(self.buttonFrame, text="farm and forest", command=lambda:[self.classify(self.classes["farm and forest"]), self.updateCanvas(), self.updateIndex()])
+        self.farmAndForest = tk.Button(self.buttonFrame, text="farm and forest", command=lambda:[self.classify("farm and forest"), self.updateCanvas(), self.updateIndex()])
         self.farmAndForest.grid(row=rowButtonPredefined2,column=2, columnspan=2)
 
     def clearTextInput(self, textBoxAttribute):
@@ -103,8 +107,8 @@ class Application(ttk.Frame):
         else:
             print('Not Implemented')
 
-    def classify(self, savedClass:int):
-        self.classifiedDict[f'{self.currentThumbnailIndex}'] = savedClass
+    def classify(self, savedClass:str):
+        self.classifiedDict[f'{self.currentThumbnailIndex}'] = self.defaultFeatureList.index(savedClass)
         try:
             self.classifiedDict['Not Classified'].remove(self.currentThumbnailIndex)
             self.classifiedDict['Classified'].append(self.currentThumbnailIndex)
@@ -134,8 +138,7 @@ class Application(ttk.Frame):
         self.currentIndexDisplay['text'] = f'({self.currentThumbnailIndex}) / ({self.nTiles})'
 
     def saveProgress(self):
-        with open(self.classifiedFolderPath / f'{self.currentTileName}.json', 'w') as outfile:
-            json.dump(self.classifiedDict, outfile)
+        writeJsonFile(self.classifiedFolderPath / f'{self.currentTileName}.json', self.classifiedDict)
         print(f'Progress saved in {self.currentTileName}.json')
 
     def setCurrentlyOpenedFile(self, tileName:str):
@@ -155,10 +158,9 @@ class Application(ttk.Frame):
 
     def loadClassifiedDict(self):
         if Path(self.classifiedFolderPath / f'{self.currentTileName}.json').is_file()==False:
-            self.classifiedDict = {'Not Classified':[i for i in range(self.nTiles)],
+            self.classifiedDict = {'Not Classified':[i for i in range(self.nLabels)],
                                 'Classified': []}
-            with open(self.classifiedFolderPath / f'{self.currentTileName}.json', 'w') as outfile:
-                json.dump(self.classifiedDict, outfile)
+            writeJsonFile(self.classifiedFolderPath / f'{self.currentTileName}.json', self.classifiedDict)
         else:
             self.classifiedDict = json.load(open(self.classifiedFolderPath / f'{self.currentTileName}.json'))
 
@@ -166,3 +168,7 @@ class Application(ttk.Frame):
             self.currentThumbnailIndex = self.classifiedDict['Not Classified'][0]
         else:
             self.currentThumbnailIndex = self.classifiedDict['Classified'][0]
+
+def writeJsonFile(filePath, file):
+    with open(filePath, 'w') as outfile:
+        json.dump(file, outfile)

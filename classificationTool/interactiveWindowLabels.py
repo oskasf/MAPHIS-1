@@ -32,6 +32,11 @@ class Application(ttk.Frame):
         self.classifiedFolderPath = Path(f'{datasetPath}/classifiedLabels/{cityName}')
         self.classifiedFolderPath.mkdir(parents=True, exist_ok=True)
 
+        self.defaultFeatureList = ['False Positive', 'manhole','lamppost', 'stone', 'chimney', 'chy', 'hotel', 
+                            'church', 'workshop', 'firepost', 'river', 'school', 'barrack', 
+                            'workhouse', 'market', 'chapel', 'bank', 'pub', 'public house', 
+                            'inn', 'bath', 'theatre', 'police', 'wharf', 'yard', 'green', 'park', 'quarry', 'number']
+
         self.setCurrentlyOpenedFile(self.allLabelsToClassifyNames[0])
         self.nLabels = len(self.currentlyOpenedLabels)
         self.loadClassifiedDict()
@@ -53,7 +58,8 @@ class Application(ttk.Frame):
         rowButtonPredefined4 = 6
         rowButtonPredefined5 = 7
         rowButtonPredefined6 = 8
-        rowTileInfo = rowButtonPredefined6+ 1
+        rowButtonPredefined7 = 9
+        rowTileInfo = rowButtonPredefined7+ 1
 
         self.buttonFrame = tk.Frame(master)
         self.buttonFrame.grid(row=rowButtonActions,column=0)
@@ -135,6 +141,8 @@ class Application(ttk.Frame):
         self.buttonPark.grid(row=rowButtonPredefined6,column=2)
         self.buttonQuarry = tk.Button(self.buttonFrame, text="quarry", command=lambda:[self.classify("quarry"), self.updateCanvas()])
         self.buttonQuarry.grid(row=rowButtonPredefined6,column=3)
+        self.buttonQuarry = tk.Button(self.buttonFrame, text="number", command=lambda:[self.classify("number"), self.updateCanvas()])
+        self.buttonQuarry.grid(row=rowButtonPredefined7,column=0)
 
         self.tileNameDisplayed = tk.StringVar(self.buttonFrame)
         self.tileNameDisplayed.set(self.currentTileName) # default value
@@ -164,9 +172,15 @@ class Application(ttk.Frame):
     def updateIndex(self):
         self.currentIndexDisplay['text'] = f'({self.currentThumbnailIndex}) / ({self.nLabels})'
 
-
     def classify(self, savedClass:str):
-        self.classifiedDict[f'{self.currentThumbnailIndex}'] = savedClass
+        coordinates = self.currentCoordinates
+
+        if savedClass not in self.defaultFeatureList:        
+            self.defaultFeatureList.append(savedClass)
+        
+        coordinates['class'] = self.defaultFeatureList.index(savedClass)
+        self.classifiedDict[f'{self.currentThumbnailIndex}'] = coordinates
+
         try:
             self.classifiedDict['Not Classified'].remove(self.currentThumbnailIndex)
             self.classifiedDict['Classified'].append(self.currentThumbnailIndex)
@@ -195,8 +209,8 @@ class Application(ttk.Frame):
 
     def saveProgress(self):
         print(self.classifiedFolderPath / f'{self.currentTileName}.json')
-        with open(self.classifiedFolderPath / f'{self.currentTileName}.json', 'w') as outfile:
-            json.dump(self.classifiedDict, outfile)
+        writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), {index:key for index, key in enumerate(self.defaultFeatureList)})
+        writeJsonFile(self.classifiedFolderPath / f'{self.currentTileName}.json', self.classifiedDict)
         print(f'Progress saved in {self.currentTileName}.json')
 
     def setCurrentlyOpenedFile(self, tileName:str):
@@ -220,8 +234,7 @@ class Application(ttk.Frame):
         if Path(self.classifiedFolderPath / f'{self.currentTileName}.json').is_file()==False:
             self.classifiedDict = {'Not Classified':[i for i in range(self.nLabels)],
                                 'Classified': []}
-            with open(self.classifiedFolderPath / f'{self.currentTileName}.json', 'w') as outfile:
-                json.dump(self.classifiedDict, outfile)
+            writeJsonFile(self.classifiedFolderPath / f'{self.currentTileName}.json', self.classifiedDict)
         else:
             self.classifiedDict = json.load(open(self.classifiedFolderPath / f'{self.currentTileName}.json'))
 
@@ -229,3 +242,7 @@ class Application(ttk.Frame):
             self.currentThumbnailIndex = self.classifiedDict['Not Classified'][0]
         else:
             self.currentThumbnailIndex = self.classifiedDict['Classified'][0]
+
+def writeJsonFile(filePath, file):
+    with open(filePath, 'w') as outfile:
+        json.dump(file, outfile)
