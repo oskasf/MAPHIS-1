@@ -8,6 +8,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import glob
 import argparse
+from pyprojroot import here
+import os
 
 nLinesMax = 8
 
@@ -279,13 +281,14 @@ def main(args):
             print(f'{i} / {args.nSamples}')
 
 if __name__ == '__main__':
+    base_path = str(here())
     parser = argparse.ArgumentParser(description='Tree Generation')
-    parser.add_argument('--datasetPath', required=False, type=str, default = f'C:/Users/hx21262/MAPHIS/datasets/patterns')
+    parser.add_argument('--datasetPath', required=False, type=str, default = os.path.join(base_path, "datasets", "patterns"))
     parser.add_argument('--nSamples', required=False, type=int, default = 4000)
     parser.add_argument('--randomSeed', required=False, type=int, default = 753159)
-    parser.add_argument('--savePath', required=False, type=str, default = f'C:/Users/hx21262/MAPHIS/datasets/syntheticCities')
+    parser.add_argument('--savePath', required=False, type=str, default = os.path.join(base_path, "datasets", "syntheticCities"))
     parser.add_argument('--imageSize', required=False, type=int, default = 512)
-    parser.add_argument('--treatment', required=False, type=str, default='show')
+    parser.add_argument('--treatment', required=False, type=str, default='save')
     args = parser.parse_args()
 
     savePath = Path(args.savePath)
