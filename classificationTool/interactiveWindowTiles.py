@@ -11,28 +11,26 @@ from pathlib import Path
 import json
 
 class Application(ttk.Frame):
-    def __init__(self, master:tk.Tk, cityName:str, datasetPath:Path, tileFileFormat:str):
+    def __init__(self, master:tk.Tk, cityName:str, datasetPath:Path, classifiedFolderPath:Path, tileFileFormat:str):
         super(Application, self).__init__()
 
         self.cityName = cityName
         self.datasetPath = datasetPath
-        self.cityPath = next(datasetPath.glob(f'cities/{cityName}/*/*'))
 
+        self.cityPath = next(datasetPath.glob(f'cities/{cityName}/*/*'))
         self.allTilesPath = list(self.cityPath.glob(f'*{tileFileFormat}'))
         self.allTilesNames = [cityPath.stem for cityPath in self.allTilesPath]
 
-        self.classifiedFolderPath = Path(f'{datasetPath}/classifiedMaps/{cityName}')
+        self.classifiedFolderPath = classifiedFolderPath / Path(f'{cityName}')
         self.classifiedFolderPath.mkdir(parents=True, exist_ok=True)
+        
         self.tilingParameters = json.load(open(datasetPath / 'tilingParameters.json'))
         self.nTiles = int(self.tilingParameters["nCols"]*self.tilingParameters["nRows"])
         
         self.setCurrentlyOpenedFile(self.allTilesNames[0])
         self.loadClassifiedDict()
 
-        self.defaultFeatureList = ['rich residential neighborhood', 'poor residential neighborhood', 'industrial district',
-                               'peri-urban district',  'farm and forest']
-                               
-        self.classes = {index:key for index, key in enumerate(self.defaultFeatureList)}
+                                      
         if not Path(f'{self.classifiedFolderPath.parent}/classes.json').is_file():
             writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), self.classes)    
 
@@ -108,11 +106,13 @@ class Application(ttk.Frame):
     def classify(self, savedClass:str):
         coordinates = self.currentCoordinates
 
-        if savedClass not in self.defaultFeatureList:        
-            self.defaultFeatureList.append(savedClass)
+        if savedClass not in self.featureList:        
+            print(f"Adding class {savedClass} in {self.classifiedFolderPath.parent / Path(f'classes.json')}")
+            self.featureList[savedClass] = len(self.featureList)
         
-        coordinates['class'] = self.defaultFeatureList.index(savedClass)
+        coordinates['class'] = self.featureList[savedClass]
         self.classifiedDict[f'{self.currentThumbnailIndex}'] = coordinates
+
         try:
             self.classifiedDict['Not Classified'].remove(self.currentThumbnailIndex)
             self.classifiedDict['Classified'].append(self.currentThumbnailIndex)
@@ -150,6 +150,7 @@ class Application(ttk.Frame):
         self.currentIndex = self.allTilesNames.index(self.currentTileName)
         self.currentTilePath = self.allTilesPath[self.currentIndex]
         self.currentlyOpenedFile = self.fileOpenFunction(self.currentTilePath)
+        self.featureList = openJsonFile(self.classifiedFolderPath.parent / Path(f'classes.json'))
 
     def getCurrentCoordinates(self)->dict:
         return self.tilingParameters['coordinates'][f'{self.currentThumbnailIndex}']
@@ -176,3 +177,6 @@ class Application(ttk.Frame):
 def writeJsonFile(filePath, file):
     with open(filePath, 'w') as outfile:
         json.dump(file, outfile)
+
+def openJsonFile(filePath):
+    return json.load(open(filePath))

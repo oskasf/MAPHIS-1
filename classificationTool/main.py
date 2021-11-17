@@ -23,26 +23,31 @@ def main():
 
     print(f'Classification Type : {args.classifType}')
     if args.classifType.lower() == 'labels':
-        '''defaultFeatureList = ['manhole','lamppost', 'stone', 'chimney', 'chy', 'hotel', 
+        defaultFeatureList = ['False Positive', 'manhole','lamppost', 'stone', 'chimney', 'chy', 'hotel', 
                             'church', 'workshop', 'firepost', 'river', 'school', 'barrack', 
-                            'workhouse', 'market', 'chapel', 'bank', 'pub', 'public house', 'hotel', 
-                            'inn', 'bath', 'theatre', 'police', 'wharf', 'yard', 'green', 'park', 'quarry']'''
+                            'workhouse', 'market', 'chapel', 'bank', 'pub', 'public house', 
+                            'inn', 'bath', 'theatre', 'police', 'wharf', 'yard', 'green', 'park', 'quarry', 'number']
         from interactiveWindowLabels import Application
 
     elif args.classifType.lower() == 'tiles':
-        '''defaultFeatureList =['rich residential neighborhood', 'poor residential neighborhood', 'industrial district',
-                               'peri-urban district',  'farm and forest']'''
+        defaultFeatureList = ['rich residential neighborhood', 'poor residential neighborhood', 'industrial district',
+                               'peri-urban district',  'farm and forest']
         from interactiveWindowTiles import Application
 
     elif args.classifType.lower() == 'contours':
-        #defaultFeatureList = ['interesting','not interesting', 'tree', 'factory', 'villa']
+        defaultFeatureList = ['interesting','not interesting', 'tree', 'factory', 'villa']
         from interactiveWindowContours import Application
         
     else:
         raise ValueError ("Has to be contours, tiles or labels")
 
+    classifiedFolderPath = datasetPath / f'classified{args.classifType.capitalize()}'
+    if not Path(classifiedFolderPath / f'classes.json').is_file():
+        with open(Path(classifiedFolderPath / f'classes.json'), 'w') as outfile:
+            json.dump(defaultFeatureList, outfile)
+
     root = tk.Tk()
-    app = Application(root, cityName, datasetPath, args.tileFileFormat)
+    app = Application(root, cityName, datasetPath, classifiedFolderPath, args.tileFileFormat)
     root.mainloop()
 
 if __name__=='__main__':

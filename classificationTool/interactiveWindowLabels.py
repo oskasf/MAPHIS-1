@@ -13,7 +13,7 @@ import json
 tolerance = 10
 
 class Application(ttk.Frame):
-    def __init__(self, master:tk.Tk, cityName:str, datasetPath:Path, tileFileFormat:str):
+    def __init__(self, master:tk.Tk, cityName:str, datasetPath:Path, classifiedFolderPath:Path, tileFileFormat:str):
         super(Application, self).__init__()
         self.cityName = cityName
         self.datasetPath = datasetPath
@@ -29,13 +29,8 @@ class Application(ttk.Frame):
         self.allLabelsToClassifyPath = list(self.cityPathLabel.glob(f'*.json'))
         self.allLabelsToClassifyNames =  [tilePath.stem for tilePath in self.allLabelsToClassifyPath]
 
-        self.classifiedFolderPath = Path(f'{datasetPath}/classifiedLabels/{cityName}')
+        self.classifiedFolderPath = classifiedFolderPath / Path(f'{cityName}')
         self.classifiedFolderPath.mkdir(parents=True, exist_ok=True)
-
-        self.defaultFeatureList = ['False Positive', 'manhole','lamppost', 'stone', 'chimney', 'chy', 'hotel', 
-                            'church', 'workshop', 'firepost', 'river', 'school', 'barrack', 
-                            'workhouse', 'market', 'chapel', 'bank', 'pub', 'public house', 
-                            'inn', 'bath', 'theatre', 'police', 'wharf', 'yard', 'green', 'park', 'quarry', 'number']
 
         self.setCurrentlyOpenedFile(self.allLabelsToClassifyNames[0])
         self.nLabels = len(self.currentlyOpenedLabels)
@@ -72,6 +67,9 @@ class Application(ttk.Frame):
 
         self.fpButton = tk.Button(self.buttonFrame, text="False Positive", command=lambda:[self.classify("False Positive"), self.updateCanvas()])
         self.fpButton.grid(row=rowButtonActions,column=2)
+
+        '''self.buttonResize = ttk.Button(self.buttonFrame, text="Bonuses", command=self.popup_bonus)
+        self.buttonResize.grid(row=rowButtonActions,column=3)'''
 
         self.currentIndexDisplay = tk.Label(self.buttonFrame, height = 1 , width = len(f'{self.nLabels}/ {self.nLabels}'), text=f'{self.currentThumbnailIndex} / {self.nLabels}')
         self.currentIndexDisplay.grid(row=rowIndexInfo, column=0)
@@ -172,10 +170,11 @@ class Application(ttk.Frame):
     def classify(self, savedClass:str):
         coordinates = self.currentCoordinates
 
-        if savedClass not in self.defaultFeatureList:        
-            self.defaultFeatureList.append(savedClass)
+        if savedClass not in self.featureList:        
+            print(f"Adding class {savedClass} in {self.classifiedFolderPath.parent / Path(f'classes.json')}")
+            self.featureList[savedClass] = len(self.featureList)
         
-        coordinates['class'] = self.defaultFeatureList.index(savedClass)
+        coordinates['class'] = self.featureList[savedClass]
         self.classifiedDict[f'{self.currentThumbnailIndex}'] = coordinates
 
         try:
@@ -206,7 +205,7 @@ class Application(ttk.Frame):
 
     def saveProgress(self):
         print(self.classifiedFolderPath / f'{self.currentTileName}.json')
-        writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), {key: index for index, key in enumerate(self.defaultFeatureList)})
+        writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), {key: index for index, key in enumerate(self.featureList)})
         writeJsonFile(self.classifiedFolderPath / f'{self.currentTileName}.json', self.classifiedDict)
         print(f'Progress saved in {self.currentTileName}.json')
 
@@ -217,6 +216,7 @@ class Application(ttk.Frame):
         self.currentLabelFilePath = self.allLabelsToClassifyPath[self.currentIndex]
         self.currentlyOpenedMap = self.fileOpenFunction(self.currentTilePath)
         self.currentlyOpenedLabels = json.load(open(self.currentLabelFilePath))['labels']
+        self.featureList = openJsonFile(self.classifiedFolderPath.parent / Path(f'classes.json'))
 
     def getCurrentCoordinates(self)->dict:
         return self.currentlyOpenedLabels[f'{self.currentThumbnailIndex}']
@@ -240,6 +240,30 @@ class Application(ttk.Frame):
         else:
             self.currentThumbnailIndex = self.classifiedDict['Classified'][0]
 
+    def popup_bonus(self):
+        win = tk.Toplevel()
+        win.wm_title("Window")
+
+        figThumbnail = Figure(figsize=(5, 4), dpi=100)
+        canvaThumbnail = FigureCanvasTkAgg(figThumbnail, self.master)
+        canvaThumbnail.get_tk_widget().grid(row=2,column=0)
+        figThumbnail.clear()
+        figThumbnail.add_subplot(111).imshow(self.currentlyOpenedMap[self.currentCoordinates['yTile']-self.paddingY:self.currentCoordinates['yTile']-self.paddingY+self.currentCoordinates['H'], self.currentCoordinates['xTile']-self.paddingX:self.currentCoordinates['xTile']-self.paddingX+self.currentCoordinates['W']])
+        canvaThumbnail.draw()
+
+        l = tk.Label(win, text="Input")
+        l.grid(row=0, column=0)
+
+        b = ttk.Button(win, text="Save", command=win.destroy)
+        b.grid(row=1, column=0)
+
+        b = ttk.Button(win, text="Cancel", command=win.destroy)
+        b.grid(row=1, column=1)
+
 def writeJsonFile(filePath, file):
     with open(filePath, 'w') as outfile:
         json.dump(file, outfile)
+
+def openJsonFile(filePath):
+    return json.load(open(filePath))
+
