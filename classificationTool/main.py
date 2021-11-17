@@ -43,8 +43,9 @@ def main():
 
     classifiedFolderPath = datasetPath / f'classified{args.classifType.capitalize()}'
     if not Path(classifiedFolderPath / f'classes.json').is_file():
+        parsedList = {key:i for i, key in enumerate(defaultFeatureList)}
         with open(Path(classifiedFolderPath / f'classes.json'), 'w') as outfile:
-            json.dump(defaultFeatureList, outfile)
+            json.dump(parsedList, outfile)
 
     root = tk.Tk()
     app = Application(root, cityName, datasetPath, classifiedFolderPath, args.tileFileFormat)
