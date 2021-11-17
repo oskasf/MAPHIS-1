@@ -8,7 +8,6 @@ import models
 import matplotlib.pyplot as plt
 import json
 from pyprojroot import here
-import os
 
 from datasetsFunctions import syntheticCity
 
@@ -17,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description='Tree Generation')
     parser.add_argument('--batchSize', required=False, type=int, default = 4)
     parser.add_argument('--randomSeed', required=False, type=int, default = 753159)
-    parser.add_argument('--datasetPath', required=False, type=str, default = os.path.join(base_path, "datasets"))
+    parser.add_argument('--datasetPath', required=False, type=str, default = base_path / "datasets")
     parser.add_argument('--imageSize', required=False, type=int, default = 512)
     parser.add_argument('--epochs', required=False, type=int, default = 3)
     parser.add_argument('--numWorkers', required=False, type=int, default = 2)

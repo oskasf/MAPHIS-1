@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import glob
 import argparse
 from pyprojroot import here
-import os
 
 nLinesMax = 8
 
@@ -283,10 +282,10 @@ def main(args):
 if __name__ == '__main__':
     base_path = str(here())
     parser = argparse.ArgumentParser(description='Tree Generation')
-    parser.add_argument('--datasetPath', required=False, type=str, default = os.path.join(base_path, "datasets", "patterns"))
+    parser.add_argument('--datasetPath', required=False, type=str, default = base_path / "datasets" / "patterns")
     parser.add_argument('--nSamples', required=False, type=int, default = 4000)
     parser.add_argument('--randomSeed', required=False, type=int, default = 753159)
-    parser.add_argument('--savePath', required=False, type=str, default = os.path.join(base_path, "datasets", "syntheticCities"))
+    parser.add_argument('--savePath', required=False, type=str, default = "datasets" / "syntheticCities")
     parser.add_argument('--imageSize', required=False, type=int, default = 512)
     parser.add_argument('--treatment', required=False, type=str, default='save')
     args = parser.parse_args()

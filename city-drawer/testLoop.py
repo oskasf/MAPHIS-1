@@ -7,13 +7,12 @@ import numpy as np
 from pathlib import Path
 import json
 from pyprojroot import here
-import os
 
 def main():    
     base_path = str(here()) 
     parser = argparse.ArgumentParser(description='Tree Generation')
     parser.add_argument('--batchSize', required=False, type=int, default = 1)
-    parser.add_argument('--datasetPath', required=False, type=str, default = os.path.join(base_path, "datasets"))
+    parser.add_argument('--datasetPath', required=False, type=str, default = base_path / "datasets")
     parser.add_argument('--fileFormat', required=False, type=str, default = '.jpg')
     parser.add_argument('--feature', required=False, type=str, default = '')
     parser.add_argument('--cityName', required=False, type=str, default = 'Luton')
