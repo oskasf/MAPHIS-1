@@ -3,3 +3,6 @@ datasets/coloredMaps/
 datasets/syntheticCities/
 city_drawer/saves/
 city_drawer/segmentedMaps/
+misc.py
+boast.py
+evaluationLoop.py

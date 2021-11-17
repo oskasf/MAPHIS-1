@@ -188,7 +188,7 @@ class tilesClassifier(Module):
         self.down8 = down2d(64*ngf, 64*ngf, 3)
         self.fc1 = Linear(256,128)
         self.fc2 = Linear(128,32)
-        self.fc3 = Linear(32,5)
+        self.fc3 = Linear(32,outClasses)
         self.lRelu = LeakyReLU(negative_slope=0.1)
         self.sigmoid = Sigmoid()
 
