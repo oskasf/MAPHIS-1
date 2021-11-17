@@ -73,9 +73,6 @@ class Application(ttk.Frame):
         self.fpButton = tk.Button(self.buttonFrame, text="False Positive", command=lambda:[self.classify("False Positive"), self.updateCanvas()])
         self.fpButton.grid(row=rowButtonActions,column=2)
 
-        self.add_feature_button = tk.Button(self.buttonFrame, text="Add feature", command=lambda:[self.addFeatureToList(self.textField.get()), self.classify(self.textField.get()), self.clearTextInput(self.textField),self.updateCanvas()])
-        self.add_feature_button.grid(row=rowButtonActions,column=3)
-
         self.currentIndexDisplay = tk.Label(self.buttonFrame, height = 1 , width = len(f'{self.nLabels}/ {self.nLabels}'), text=f'{self.currentThumbnailIndex} / {self.nLabels}')
         self.currentIndexDisplay.grid(row=rowIndexInfo, column=0)
 
@@ -209,7 +206,7 @@ class Application(ttk.Frame):
 
     def saveProgress(self):
         print(self.classifiedFolderPath / f'{self.currentTileName}.json')
-        writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), {index:key for index, key in enumerate(self.defaultFeatureList)})
+        writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), {key: index for index, key in enumerate(self.defaultFeatureList)})
         writeJsonFile(self.classifiedFolderPath / f'{self.currentTileName}.json', self.classifiedDict)
         print(f'Progress saved in {self.currentTileName}.json')
 

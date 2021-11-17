@@ -182,11 +182,13 @@ def openfile(filePath, fileExtension):
         return np.load(filePath)
     elif fileExtension =='.jpg':
         return Image.open(filePath)
+    elif fileExtension =='.json':
+        return json.load(open(filePath))
     else:
         raise ValueError ('Wrong fileExtension string')
 
 def matchKeyToName(pathToJsonfile:str, key : str):
-    cityKeysFile = json.load(open(pathToJsonfile))
+    cityKeysFile = openfile(pathToJsonfile,'.json')
     return cityKeysFile[key]['Town']
 
 def getTiffProperties(tiffImage, showDict = False, returnDict=False):    

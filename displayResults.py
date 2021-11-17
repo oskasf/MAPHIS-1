@@ -2,7 +2,7 @@ import argparse
 from datasets.datasetsFunctions import matchKeyToName, openfile
 from pathlib import Path
 import json
-import pandas as pd
+from pandas import DataFrame
 import numpy as np
 
 def main():
@@ -15,7 +15,7 @@ def main():
     cityName = matchKeyToName(f'{args.datasetPath}/cityKey.json', args.cityKey)
     classifiedTilesPaths = list(Path(f'{args.datasetPath}/classified{args.classifType}/{cityName}').glob('*.json'))
     classes = openfile(Path(f'{args.datasetPath}/classified{args.classifType}/classes.json'), '.json')
-
+    print(classes)
     def getMapClassificationDistribution(pathToMap:Path) -> np.float32:
         mapDistribution = np.zeros(len(classes), np.float32)
         print(f'Processing tile {pathToMap.stem}')
@@ -25,13 +25,18 @@ def main():
         totalLength = len(classifiedIndexes)+len(unClassifiedIndexes)
         print(f'classification percentage : { len(classifiedIndexes)/totalLength:.2f}')       
         for classifiedIndex in classifiedIndexes:
-            mapDistribution[int(jsonDict[f'{classifiedIndex}'])] += 1
+            mapDistribution[int(jsonDict[f'{classifiedIndex}']['class'])] += 1
         return mapDistribution/totalLength
 
-    for path in classifiedTilesPaths:
-        mapDistribution = getMapClassificationDistribution(path)    
-        print(mapDistribution)
+    data = []
+    nameRows = []
+    headers = [key for key in classes]
 
+    for path in classifiedTilesPaths:
+        nameRows.append(path.stem)
+        mapDistribution = getMapClassificationDistribution(path)    
+        data.append(mapDistribution.tolist())
+    print(DataFrame(data, nameRows, headers))
 
 if __name__ == '__main__':
     main()

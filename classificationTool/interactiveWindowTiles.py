@@ -34,9 +34,7 @@ class Application(ttk.Frame):
                                
         self.classes = {index:key for index, key in enumerate(self.defaultFeatureList)}
         if not Path(f'{self.classifiedFolderPath.parent}/classes.json').is_file():
-            writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), self.classes)
-            
-        self.classifiedTile = {}        
+            writeJsonFile(Path(f'{self.classifiedFolderPath.parent}/classes.json'), self.classes)    
 
         self.figThumbnail = Figure(figsize=(5, 4), dpi=100)
         self.canvaThumbnail = FigureCanvasTkAgg(self.figThumbnail, master)
@@ -108,7 +106,13 @@ class Application(ttk.Frame):
             print('Not Implemented')
 
     def classify(self, savedClass:str):
-        self.classifiedDict[f'{self.currentThumbnailIndex}'] = self.defaultFeatureList.index(savedClass)
+        coordinates = self.currentCoordinates
+
+        if savedClass not in self.defaultFeatureList:        
+            self.defaultFeatureList.append(savedClass)
+        
+        coordinates['class'] = self.defaultFeatureList.index(savedClass)
+        self.classifiedDict[f'{self.currentThumbnailIndex}'] = coordinates
         try:
             self.classifiedDict['Not Classified'].remove(self.currentThumbnailIndex)
             self.classifiedDict['Classified'].append(self.currentThumbnailIndex)
@@ -158,7 +162,7 @@ class Application(ttk.Frame):
 
     def loadClassifiedDict(self):
         if Path(self.classifiedFolderPath / f'{self.currentTileName}.json').is_file()==False:
-            self.classifiedDict = {'Not Classified':[i for i in range(self.nLabels)],
+            self.classifiedDict = {'Not Classified':[i for i in range(self.nTiles)],
                                 'Classified': []}
             writeJsonFile(self.classifiedFolderPath / f'{self.currentTileName}.json', self.classifiedDict)
         else:

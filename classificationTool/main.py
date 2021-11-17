@@ -12,8 +12,9 @@ def matchKeyToName(pathToJsonfile:str, key : str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--classifType', type=str, required=False, default='labels')
-    parser.add_argument('--datasetPath', type=str, required=False, default='C:/Users/hx21262/MAPHIS/datasets')
+    parser.add_argument('--datasetPath', type=str, required=False, default=r'C:\Users\hx21262\MAPHIS\datasets')
     parser.add_argument('--cityKey', type=str, required=False, default='36')
+    parser.add_argument('--tileFileFormat', type=str, required=False, default='.jpg')
     args = parser.parse_args()
     
     cityName = matchKeyToName(f'{args.datasetPath}/cityKey.json', args.cityKey)
@@ -41,7 +42,7 @@ def main():
         raise ValueError ("Has to be contours, tiles or labels")
 
     root = tk.Tk()
-    app = Application(root, cityName, datasetPath, '.jpg')
+    app = Application(root, cityName, datasetPath, args.tileFileFormat)
     root.mainloop()
 
 if __name__=='__main__':
