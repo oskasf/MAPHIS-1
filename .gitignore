@@ -2,3 +2,4 @@ datasets/cities/
 datasets/coloredMaps/
 datasets/syntheticCities/
 city_drawer/saves/
+city_drawer/segmentedMaps/
