@@ -1,0 +1,7 @@
+{
+    "rich residential neighborhood":0, 
+    "poor residential neighborhood":1, 
+    "industrial district":2,
+    "peri-urban district":3,  
+    "farm and forest":4
+}
