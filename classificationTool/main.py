@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import csv
-from pathlib import Path
+from pathlib import Path, PurePath
 import tkinter as tk
 import argparse
 import json
+from pyprojroot import here
 
 def matchKeyToName(pathToJsonfile:str, key : str):
     cityKeysFile = json.load(open(pathToJsonfile))
@@ -12,7 +13,7 @@ def matchKeyToName(pathToJsonfile:str, key : str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--classifType', type=str, required=False, default='labels')
-    parser.add_argument('--datasetPath', type=str, required=False, default=r'C:\Users\hx21262\MAPHIS\datasets')
+    parser.add_argument('--datasetPath', required=False, type=PurePath, default = here().joinpath('datasets'))
     parser.add_argument('--cityKey', type=str, required=False, default='36')
     parser.add_argument('--tileFileFormat', type=str, required=False, default='.jpg')
     args = parser.parse_args()

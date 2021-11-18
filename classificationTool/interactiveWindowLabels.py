@@ -18,6 +18,7 @@ class Application(ttk.Frame):
         self.cityName = cityName
         self.datasetPath = datasetPath
 
+        self.tileFileFormat = tileFileFormat
         self.cityPathMap = next(datasetPath.glob(f'cities/{cityName}/*/*'))
         self.allTilesPath = list(self.cityPathMap.glob(f'*{tileFileFormat}'))
         self.allTilesNames = [tilePath.stem for tilePath in self.allTilesPath]
@@ -211,7 +212,10 @@ class Application(ttk.Frame):
 
     def setCurrentlyOpenedFile(self, tileName:str):
         self.currentTileName = tileName
-        self.currentIndex = self.allTilesNames.index(self.currentTileName)
+        try:
+            self.currentIndex = self.allTilesNames.index(self.currentTileName)
+        except ValueError:
+            raise FileNotFoundError((f"{self.currentTileName}{self.tileFileFormat} can't be found, is it in {self.cityPathMap}?"))
         self.currentTilePath = self.allTilesPath[self.currentIndex]
         self.currentLabelFilePath = self.allLabelsToClassifyPath[self.currentIndex]
         self.currentlyOpenedMap = self.fileOpenFunction(self.currentTilePath)

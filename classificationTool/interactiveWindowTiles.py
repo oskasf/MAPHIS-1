@@ -17,9 +17,10 @@ class Application(ttk.Frame):
         self.cityName = cityName
         self.datasetPath = datasetPath
 
-        self.cityPath = next(datasetPath.glob(f'cities/{cityName}/*/*'))
-        self.allTilesPath = list(self.cityPath.glob(f'*{tileFileFormat}'))
-        self.allTilesNames = [cityPath.stem for cityPath in self.allTilesPath]
+        self.tileFileFormat = tileFileFormat
+        self.cityPathMap = next(datasetPath.glob(f'cities/{cityName}/*/*'))
+        self.allTilesPath = list(self.cityPathMap.glob(f'*{tileFileFormat}'))
+        self.allTilesNames = [cityPathMap.stem for cityPathMap in self.allTilesPath]
 
         self.classifiedFolderPath = classifiedFolderPath / Path(f'{cityName}')
         self.classifiedFolderPath.mkdir(parents=True, exist_ok=True)
