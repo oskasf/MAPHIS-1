@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np 
 from pathlib import Path
 import json
+from pyprojroot import here
 
 def main():    
     parser = argparse.ArgumentParser(description='Tree Generation')
     parser.add_argument('--batchSize', required=False, type=int, default = 1)
-    parser.add_argument('--datasetPath', required=False, type=str, default = f'C:/Users/hx21262/MAPHIS/datasets')
+    parser.add_argument('--datasetPath', required=False, type=str, default = str(here() / 'datasets'))
     parser.add_argument('--fileFormat', required=False, type=str, default = '.jpg')
     parser.add_argument('--feature', required=False, type=str, default = '')
     parser.add_argument('--cityName', required=False, type=str, default = 'Luton')

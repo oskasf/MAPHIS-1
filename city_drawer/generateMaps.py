@@ -11,6 +11,7 @@ import glob
 import argparse
 from typing import Tuple
 from numba import jit
+from pyprojroot import here
 
 PSMALL  = 0.15
 PMEDIUM = 0.15
@@ -292,9 +293,10 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Tree Generation')
     parser.add_argument('--datasetPath', required=False, type=str, default = f'C:/Users/hx21262/MAPHIS/datasets/patterns')
+    parser.add_argument('--datasetPath', required=False, type=str, default = str(here() / 'datasets' / 'patterns'))
     parser.add_argument('--nSamples', required=False, type=int, default = 4000)
     parser.add_argument('--randomSeed', required=False, type=int, default = 753159)
-    parser.add_argument('--savePath', required=False, type=str, default = f'C:/Users/hx21262/MAPHIS/datasets/syntheticCities')
+    parser.add_argument('--savePath', required=False, type=str, default = str(here()/ 'datasets' / 'syntheticCities'))
     parser.add_argument('--imageSize', required=False, type=int, default = 512)
     parser.add_argument('--treatment', required=False, type=str, default='show')
     args = parser.parse_args()
