@@ -299,8 +299,6 @@ if __name__ == '__main__':
     parser.add_argument('--treatment', required=False, type=str, default='show')
     args = parser.parse_args()
 
-    
-
     savePath = Path(args.savePath)
     savePath.mkdir(parents=True, exist_ok=True)
     main(args)
